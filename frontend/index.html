@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DubAI — Video Dubbing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #7c6aff;
+    --accent2: #ff6a9b;
+    --accent3: #6affd4;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --success: #4ade80;
+    --error: #f87171;
+  }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124,106,255,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,106,155,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 56px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+  }
+
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 480px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .card:focus-within { border-color: var(--accent); }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    border-radius: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  /* Input */
+  .input-group { margin-bottom: 20px; }
+  .input-group:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  input[type="url"], input[type="text"], select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none;
+  }
+
+  input[type="url"]:focus, input[type="text"]:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+
+  /* Drop zone */
+  .dropzone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .dropzone:hover, .dropzone.drag-over {
+    border-color: var(--accent);
+    background: rgba(124,106,255,0.04);
+  }
+
+  .dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .dropzone-icon { font-size: 32px; margin-bottom: 12px; }
+
+  .dropzone-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .dropzone-text strong { color: var(--accent); font-weight: 400; }
+
+  .file-selected {
+    background: rgba(124,106,255,0.08);
+    border-color: var(--accent);
+    border-style: solid;
+  }
+
+  .file-name {
+    font-size: 13px;
+    color: var(--accent3);
+    margin-top: 8px;
+    word-break: break-all;
+  }
+
+  /* Lang grid */
+  .lang-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Submit button */
+  .btn-dub {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), #a855f7);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-dub::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .btn-dub:hover:not(:disabled)::before { opacity: 1; }
+  .btn-dub:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Status */
+  .status-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    display: none;
+  }
+
+  .status-card.visible { display: block; }
+
+  .status-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .status-dot.pulsing {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .status-dot.done { background: var(--success); animation: none; }
+  .status-dot.error { background: var(--error); animation: none; }
+
+  .status-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .status-id {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Progress bar */
+  .progress-track {
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  /* Steps */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .step.active { color: var(--text); }
+  .step.done { color: var(--success); }
+
+  .step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .step.active .step-num { border-color: var(--accent); color: var(--accent); }
+  .step.done .step-num { background: var(--success); border-color: var(--success); color: #0a0a0f; }
+
+  /* Download */
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: var(--success);
+    color: #0a0a0f;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+
+  .btn-download:hover { opacity: 0.85; }
+
+  /* Error */
+  .error-msg {
+    background: rgba(248,113,113,0.08);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--error);
+    margin-top: 16px;
+    display: none;
+  }
+
+  .error-msg.visible { display: block; }
+
+  /* Reset */
+  .btn-reset {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-top: 16px;
+    transition: all 0.15s;
+  }
+
+  .btn-reset:hover { border-color: var(--text); color: var(--text); }
+
+  /* Footer note */
+  .footer-note {
+    margin-top: 32px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+
+  .footer-note a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="logo">
+      <div class="logo-mark">🎙</div>
+      <div class="logo-text">Dub<span>AI</span></div>
+    </div>
+    <h1>Translate any<br>video into <em>any<br>language</em></h1>
+    <p class="subtitle">Powered by ElevenLabs. Upload a video or paste a URL — we'll dub it in 90+ languages while preserving the original voices.</p>
+  </header>
+
+  <!-- Input card -->
+  <div class="card" id="inputCard">
+    <div class="section-label">01 — Input</div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('url')">URL</button>
+      <button class="tab" onclick="switchTab('file')">Upload File</button>
+    </div>
+
+    <div id="urlInput" class="input-group">
+      <label>Video or audio URL</label>
+      <input type="url" id="videoUrl" placeholder="https://example.com/video.mp4" />
+    </div>
+
+    <div id="fileInput" style="display:none" class="input-group">
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="fileUpload" accept="video/*,audio/*" onchange="handleFileSelect(this)" />
+        <div class="dropzone-icon">📁</div>
+        <div class="dropzone-text">
+          <strong>Choose a file</strong> or drag it here<br>
+          MP4, MOV, MKV, MP3, WAV — max 1 hour
+        </div>
+        <div class="file-name" id="fileName"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Languages card -->
+  <div class="card">
+    <div class="section-label">02 — Languages</div>
+    <div class="lang-grid">
+      <div class="input-group">
+        <label>Source language</label>
+        <select id="sourceLang">
+          <option value="auto">Auto-detect</option>
+          <option value="en">English</option>
+          <option value="es">Spanish</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="it">Italian</option>
+          <option value="pt">Portuguese</option>
+          <option value="ja">Japanese</option>
+          <option value="ko">Korean</option>
+          <option value="zh">Chinese</option>
+          <option value="hi">Hindi</option>
+          <option value="ar">Arabic</option>
+          <option value="ru">Russian</option>
+          <option value="nl">Dutch</option>
+          <option value="pl">Polish</option>
+          <option value="tr">Turkish</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Target language</label>
+        <select id="targetLang">
+          <option value="es">Spanish</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+          <option value="it">Italian</option>
+          <option value="pt">Portuguese</option>
+          <option value="ja">Japanese</option>
+          <option value="ko">Korean</option>
+          <option value="zh">Chinese</option>
+          <option value="hi">Hindi</option>
+          <option value="ar">Arabic</option>
+          <option value="ru">Russian</option>
+          <option value="en">English</option>
+          <option value="nl">Dutch</option>
+          <option value="pl">Polish</option>
+          <option value="tr">Turkish</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <button class="btn-dub" id="dubBtn" onclick="startDubbing()">
+    🎬 Start Dubbing
+  </button>
+
+  <!-- Status card -->
+  <div class="status-card" id="statusCard" style="margin-top:20px;">
+    <div class="status-header">
+      <div class="status-dot pulsing" id="statusDot"></div>
+      <div>
+        <div class="status-title" id="statusTitle">Processing your video…</div>
+        <div class="status-id" id="statusId"></div>
+      </div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="steps">
+      <div class="step active" id="step1">
+        <div class="step-num">1</div>
+        <span>Submitting to ElevenLabs</span>
+      </div>
+      <div class="step" id="step2">
+        <div class="step-num">2</div>
+        <span>Transcribing audio</span>
+      </div>
+      <div class="step" id="step3">
+        <div class="step-num">3</div>
+        <span>Translating dialogue</span>
+      </div>
+      <div class="step" id="step4">
+        <div class="step-num">4</div>
+        <span>Synthesizing voices</span>
+      </div>
+      <div class="step" id="step5">
+        <div class="step-num">5</div>
+        <span>Finalizing output</span>
+      </div>
+    </div>
+
+    <div id="downloadSection" style="display:none;">
+      <a id="downloadBtn" class="btn-download" href="#">
+        ⬇ Download Dubbed Audio
+      </a>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <button class="btn-reset" onclick="reset()">← Start over</button>
+  </div>
+
+  <div class="footer-note">
+    <strong>Setup:</strong> This frontend talks to a local backend at <code>localhost:3001</code>.<br>
+    Start the backend: <code>cd backend && npm install && npm run dev</code><br>
+    Add your key to <code>backend/.env</code>: <code>ELEVENLABS_API_KEY=your_key_here</code><br>
+    Get your API key at <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank">elevenlabs.io → Developers → API Keys</a>
+  </div>
+
+</div>
+
+<script>
+const BACKEND = 'http://localhost:3001';
+let pollInterval = null;
+let dubbingId = null;
+let targetLangValue = null;
+let selectedFile = null;
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (i === 0) === (tab === 'url')));
+  document.getElementById('urlInput').style.display = tab === 'url' ? 'block' : 'none';
+  document.getElementById('fileInput').style.display = tab === 'file' ? 'block' : 'none';
+}
+
+function handleFileSelect(input) {
+  selectedFile = input.files[0];
+  const dz = document.getElementById('dropzone');
+  dz.classList.add('file-selected');
+  document.getElementById('fileName').textContent = `✓ ${selectedFile.name}`;
+}
+
+// Drag and drop
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    selectedFile = file;
+    dropzone.classList.add('file-selected');
+    document.getElementById('fileName').textContent = `✓ ${file.name}`;
+    document.getElementById('fileUpload').files = e.dataTransfer.files;
+  }
+});
+
+function setStep(n) {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById(`step${i}`);
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    if (i < n) el.querySelector('.step-num').textContent = '✓';
+    else el.querySelector('.step-num').textContent = i;
+  }
+  document.getElementById('progressFill').style.width = `${Math.min((n - 1) * 25, 100)}%`;
+}
+
+async function startDubbing() {
+  const videoUrl = document.getElementById('videoUrl').value.trim();
+  const sourceLang = document.getElementById('sourceLang').value;
+  targetLangValue = document.getElementById('targetLang').value;
+
+  const isUrl = document.getElementById('urlInput').style.display !== 'none';
+  if (isUrl && !videoUrl) return alert('Please enter a video URL.');
+  if (!isUrl && !selectedFile) return alert('Please select a file to upload.');
+
+  document.getElementById('dubBtn').disabled = true;
+  document.getElementById('statusCard').classList.add('visible');
+  document.getElementById('errorMsg').classList.remove('visible');
+  document.getElementById('downloadSection').style.display = 'none';
+  setStep(1);
+
+  try {
+    let body, headers = {};
+
+    if (isUrl) {
+      body = JSON.stringify({ videoUrl, sourceLang, targetLang: targetLangValue });
+      headers['Content-Type'] = 'application/json';
+    } else {
+      body = new FormData();
+      body.append('file', selectedFile);
+      body.append('sourceLang', sourceLang);
+      body.append('targetLang', targetLangValue);
+    }
+
+    const res = await fetch(`${BACKEND}/api/dub`, { method: 'POST', headers, body });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Failed to start dubbing');
+
+    dubbingId = data.dubbingId;
+    document.getElementById('statusId').textContent = `Job ID: ${dubbingId}`;
+    setStep(2);
+    pollStatus();
+
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+function pollStatus() {
+  let stepCycle = 2;
+  const stepMessages = ['', '', 'Transcribing audio…', 'Translating dialogue…', 'Synthesizing voices…', 'Finalizing output…'];
+
+  pollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`${BACKEND}/api/dub/${dubbingId}/status`);
+      const data = await res.json();
+
+      if (data.status === 'dubbed') {
+        clearInterval(pollInterval);
+        setStep(5);
+        document.getElementById('progressFill').style.width = '100%';
+        await new Promise(r => setTimeout(r, 500));
+
+        document.getElementById('statusDot').className = 'status-dot done';
+        document.getElementById('statusTitle').textContent = '✓ Dubbing complete!';
+
+        const url = `${BACKEND}/api/dub/${dubbingId}/audio/${targetLangValue}`;
+        const dlBtn = document.getElementById('downloadBtn');
+        dlBtn.href = url;
+        dlBtn.download = `dubbed_${targetLangValue}.mp3`;
+        document.getElementById('downloadSection').style.display = 'block';
+
+      } else if (data.status === 'error' || data.error) {
+        clearInterval(pollInterval);
+        throw new Error(data.error || 'Dubbing failed');
+      } else {
+        // Advance step indicator every few polls
+        if (stepCycle < 5) {
+          stepCycle = Math.min(stepCycle + 0.15, 5);
+          setStep(Math.floor(stepCycle));
+        }
+      }
+    } catch (err) {
+      clearInterval(pollInterval);
+      showError(err.message);
+    }
+  }, 4000);
+}
+
+function showError(msg) {
+  document.getElementById('statusDot').className = 'status-dot error';
+  document.getElementById('statusTitle').textContent = 'Something went wrong';
+  document.getElementById('errorMsg').textContent = msg;
+  document.getElementById('errorMsg').classList.add('visible');
+  document.getElementById('dubBtn').disabled = false;
+}
+
+function reset() {
+  clearInterval(pollInterval);
+  dubbingId = null;
+  selectedFile = null;
+  document.getElementById('dubBtn').disabled = false;
+  document.getElementById('statusCard').classList.remove('visible');
+  document.getElementById('videoUrl').value = '';
+  document.getElementById('fileName').textContent = '';
+  document.getElementById('dropzone').classList.remove('file-selected');
+  document.getElementById('statusDot').className = 'status-dot pulsing';
+  document.getElementById('statusTitle').textContent = 'Processing your video…';
+  document.getElementById('statusId').textContent = '';
+}
+</script>
+</body>
+</html>
