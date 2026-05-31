@@ -1,10 +1,13 @@
 {
-  "name": "dubber-backend",
+  "name": "voice-dub-backend",
   "version": "1.0.0",
-  "type": "module",
+  "description": "Backend proxy for ElevenLabs video dubbing — dub any video into any language in the original speaker's voice.",
+  "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -12,6 +15,6 @@
     "express": "^4.19.2",
     "form-data": "^4.0.0",
     "multer": "^1.4.5-lts.1",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^2.7.0"
   }
 }

@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  backend-tests:
+    name: Backend dubbing tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # The test suite uses only Node's built-in test runner and a dependency
+      # free core module, so it runs without `npm install`.
+      - name: Syntax-check sources
+        run: |
+          node --check server.js
+          node --check dubbing.js
+      - name: Run tests
+        run: node --test

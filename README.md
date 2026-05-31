@@ -1,99 +1,69 @@
-# 🎙 DubAI — ElevenLabs Video Dubbing App
+# 🎙️ DubAI
 
-A web app to dub videos into 90+ languages using the ElevenLabs Dubbing API. Paste a video URL or upload a file, pick a target language, and download the dubbed audio.
+**Dub any video into any language — in the original speaker's voice.**
 
----
-
-## Project Structure
+DubAI takes a YouTube link (or an uploaded file), then transcribes, translates,
+and re-voices it using ElevenLabs' dubbing engine, which clones each speaker so
+the result sounds like the same person speaking another language. The default
+flow dubs **English → Spanish**.
 
 ```
-dubber/
-├── backend/
-│   ├── server.js       ← Express API server (proxies ElevenLabs)
-│   ├── package.json
-│   └── .env            ← Your API key goes here
-└── frontend/
-    └── index.html      ← Open this in your browser
+Video URL / file ─▶ Transcribe ─▶ Translate ─▶ Clone voice ─▶ Dubbed track
+                         (ElevenLabs Dubbing API)
 ```
 
----
+## Repository layout
 
-## Quick Start
+| Path                         | What it is                                                        |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `frontend/index.html`        | Marketing **landing page** (hero, features, how-it-works, demo). |
+| `frontend/app.html`          | The dubbing **app** UI (paste a URL / upload, track progress).   |
+| `backend/server.js`          | Express server exposing the dubbing API.                         |
+| `backend/dubbing.js`         | Dependency-free core dubbing logic (used by the server + tests). |
+| `backend/test/`              | Test suite (Node's built-in runner).                             |
 
-### 1. Get your ElevenLabs API key
-- Sign up at https://elevenlabs.io (free plan works)
-- Go to **Developers → API Keys** → Create a key
+## Quick start
 
-### 2. Set up the backend
+```bash
+# 1. Backend
+cd backend
+npm install
+cp .env.example .env        # then add your key:
+# ELEVENLABS_API_KEY=your_key_here
+npm run dev                 # http://localhost:3001
+
+# 2. Frontend — just open the static files
+open ../frontend/index.html   # landing page (links through to app.html)
+```
+
+Get an API key at **elevenlabs.io → Developers → API Keys**.
+
+### API
+
+| Method & path                 | Purpose                                            |
+| ----------------------------- | -------------------------------------------------- |
+| `POST /api/dub`               | Start a job: `{ videoUrl, sourceLang, targetLang }` or a file upload. Returns `{ dubbingId }`. |
+| `GET /api/dub/:id/status`     | Poll job status.                                   |
+| `GET /api/dub/:id/audio/:lang`| Download the dubbed audio for a language.          |
+
+## Demo
+
+The demo uses **["Me at the zoo"](https://www.youtube.com/watch?v=jNQXAC9IVRw)** —
+the first video ever uploaded to YouTube (~18s of spoken English) — dubbed into
+Spanish in the original speaker's voice. The same clip is pre-filled on the
+landing page's **Demo** section and is the fixture in the test suite.
+
+See [`DEMO.md`](DEMO.md) for details.
+
+## Testing
+
+The suite verifies that a sample YouTube video is dubbed **English → Spanish in
+the original speaker's voice**, with ElevenLabs mocked so it runs offline with no
+API key:
 
 ```bash
 cd backend
-npm install
+npm test        # or: node --test
 ```
 
-Open `.env` and replace `your_api_key_here` with your real key:
-```
-ELEVENLABS_API_KEY=sk_xxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Start the server:
-```bash
-npm run dev
-```
-
-You should see: `🎙️ Dubber backend running on http://localhost:3001`
-
-### 3. Open the frontend
-
-Just open `frontend/index.html` in your browser — no build step needed.
-
----
-
-## How to Use
-
-1. **URL tab**: Paste a direct link to an MP4, MOV, or audio file
-2. **Upload tab**: Drag and drop or select a local video/audio file
-3. Choose source language (or leave on Auto-detect)
-4. Pick your target language
-5. Click **Start Dubbing** and wait (ElevenLabs usually takes 1–5 min)
-6. Download the dubbed MP3 when it's ready
-
----
-
-## How It Works
-
-```
-Browser → POST /api/dub (backend)
-              ↓
-         ElevenLabs /v1/dubbing  [transcribe → translate → synthesize]
-              ↓
-         Poll /api/dub/:id/status  every 4 seconds
-              ↓
-         GET /api/dub/:id/audio/:lang  → download MP3
-```
-
-The backend is a thin proxy that keeps your API key **server-side only** and never exposed to the browser.
-
----
-
-## Supported Languages (Sample)
-
-English, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese (Mandarin), Hindi, Arabic, Russian, Dutch, Polish, Turkish — and 75+ more via ElevenLabs.
-
----
-
-## Tips
-
-- For best results with multiple speakers, the API auto-detects up to 3 speakers. Videos with 1–2 clear voices work best.
-- Background music is preserved by default.
-- Free-tier ElevenLabs accounts have monthly minute limits — check your dashboard usage.
-- Long videos take longer; test with a 1–2 minute clip first.
-
----
-
-## Next Steps (Ideas to Extend)
-
-- Add a video player that swaps the audio track in-browser
-- Support YouTube URLs (use `yt-dlp` on the backend to download first)
-- Add a history list of past dubbing jobs
-- Let users preview/edit the transcript before dubbing
+CI (`.github/workflows/ci.yml`) runs the suite on every push and pull request.
