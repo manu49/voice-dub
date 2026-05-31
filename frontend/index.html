@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>DubAI — Video Dubbing</title>
+<title>DubAI — Dub any video into any language, in the original voice</title>
+<meta name="description" content="DubAI turns any video into 90+ languages while keeping each speaker's original voice. Paste a YouTube link and get a dubbed track in minutes." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
 <style>
@@ -19,9 +20,9 @@
     --accent3: #6affd4;
     --text: #e8e8f0;
     --muted: #6b6b80;
-    --success: #4ade80;
-    --error: #f87171;
   }
+
+  html { scroll-behavior: smooth; }
 
   body {
     font-family: 'DM Mono', monospace;
@@ -29,726 +30,202 @@
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
+    line-height: 1.6;
   }
 
-  /* Animated background */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124,106,255,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,106,155,0.06) 0%, transparent 60%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124,106,255,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 60%, rgba(255,106,155,0.07) 0%, transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
 
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 60px 24px 80px;
-  }
+  .wrap { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 0 24px; }
 
-  /* Header */
-  .header {
-    margin-bottom: 56px;
-  }
+  a { color: inherit; }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
+  /* Nav */
+  nav {
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: blur(10px);
+    background: rgba(10,10,15,0.7);
+    border-bottom: 1px solid var(--border);
   }
-
-  .logo-mark {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-  }
-
-  .logo-text {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    letter-spacing: -0.5px;
-  }
-
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; max-width: 1000px; margin: 0 auto; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .logo-mark { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -0.5px; }
   .logo-text span { color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 28px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta { background: var(--accent); color: #fff !important; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 400; }
+  @media (max-width: 640px) { .nav-links a:not(.nav-cta) { display: none; } }
 
-  h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(36px, 6vw, 52px);
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -2px;
-    margin-bottom: 16px;
-  }
+  /* Hero */
+  .hero { text-align: center; padding: 96px 0 72px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 6px 14px; font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(40px, 7vw, 68px); font-weight: 800; line-height: 1.02; letter-spacing: -2.5px; margin-bottom: 22px; }
+  h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero p { color: var(--muted); font-size: 16px; max-width: 560px; margin: 0 auto 36px; }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 12px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; text-decoration: none; cursor: pointer; border: none; transition: all 0.18s; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #a855f7); color: #fff; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,106,255,0.3); }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); }
 
-  h1 em {
-    font-style: normal;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .subtitle {
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 1.6;
-    max-width: 480px;
-  }
-
-  /* Card */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 20px;
-    transition: border-color 0.2s;
-  }
-
-  .card:focus-within { border-color: var(--accent); }
-
-  .section-label {
-    font-size: 10px;
-    font-weight: 400;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
-
-  /* Tabs */
-  .tabs {
-    display: flex;
-    gap: 4px;
-    background: var(--surface2);
-    border-radius: 10px;
-    padding: 4px;
-    margin-bottom: 24px;
-  }
-
-  .tab {
-    flex: 1;
-    padding: 8px 16px;
-    background: none;
-    border: none;
-    border-radius: 7px;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .tab.active {
-    background: var(--surface);
-    color: var(--text);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  }
-
-  /* Input */
-  .input-group { margin-bottom: 20px; }
-  .input-group:last-child { margin-bottom: 0; }
-
-  label {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-
-  input[type="url"], input[type="text"], select {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.15s;
-    appearance: none;
-  }
-
-  input[type="url"]:focus, input[type="text"]:focus, select:focus {
-    border-color: var(--accent);
-  }
-
-  select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 40px;
-    cursor: pointer;
-  }
-
-  /* Drop zone */
-  .dropzone {
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 40px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-  }
-
-  .dropzone:hover, .dropzone.drag-over {
-    border-color: var(--accent);
-    background: rgba(124,106,255,0.04);
-  }
-
-  .dropzone input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-  }
-
-  .dropzone-icon { font-size: 32px; margin-bottom: 12px; }
-
-  .dropzone-text {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.5;
-  }
-
-  .dropzone-text strong { color: var(--accent); font-weight: 400; }
-
-  .file-selected {
-    background: rgba(124,106,255,0.08);
-    border-color: var(--accent);
-    border-style: solid;
-  }
-
-  .file-name {
-    font-size: 13px;
-    color: var(--accent3);
-    margin-top: 8px;
-    word-break: break-all;
-  }
-
-  /* Lang grid */
-  .lang-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  /* Submit button */
-  .btn-dub {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--accent), #a855f7);
-    border: none;
-    border-radius: 12px;
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.5px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .btn-dub::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .btn-dub:hover:not(:disabled)::before { opacity: 1; }
-  .btn-dub:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* Status */
-  .status-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    display: none;
-  }
-
-  .status-card.visible { display: block; }
-
-  .status-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--accent);
-    flex-shrink: 0;
-  }
-
-  .status-dot.pulsing {
-    animation: pulse 1.2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.8); }
-  }
-
-  .status-dot.done { background: var(--success); animation: none; }
-  .status-dot.error { background: var(--error); animation: none; }
-
-  .status-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-  }
-
-  .status-id {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-    letter-spacing: 0.5px;
-  }
-
-  /* Progress bar */
-  .progress-track {
-    height: 3px;
-    background: var(--surface2);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 24px;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 2px;
-    width: 0%;
-    transition: width 0.5s ease;
-  }
+  /* Sections */
+  section.block { padding: 64px 0; }
+  .eyebrow { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  h2 { font-family: 'Syne', sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+  .section-sub { color: var(--muted); font-size: 15px; max-width: 560px; margin-bottom: 40px; }
 
   /* Steps */
-  .steps {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 24px;
-  }
+  .steps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  @media (max-width: 820px) { .steps-grid { grid-template-columns: repeat(2, 1fr); } }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+  .step-num { width: 34px; height: 34px; border-radius: 9px; background: rgba(124,106,255,0.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 14px; }
+  .step-card h3 { font-family: 'Syne', sans-serif; font-size: 16px; margin-bottom: 6px; }
+  .step-card p { font-size: 13px; color: var(--muted); }
 
-  .step {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 12px;
-    color: var(--muted);
-  }
+  /* Features */
+  .feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 640px) { .feat-grid { grid-template-columns: 1fr; } }
+  .feat { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 26px; }
+  .feat .ico { font-size: 26px; margin-bottom: 14px; }
+  .feat h3 { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 8px; }
+  .feat p { font-size: 14px; color: var(--muted); }
 
-  .step.active { color: var(--text); }
-  .step.done { color: var(--success); }
+  /* Demo */
+  .demo-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; align-items: stretch; }
+  @media (max-width: 820px) { .demo-grid { grid-template-columns: 1fr; } }
+  .demo-video { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .demo-video .frame { aspect-ratio: 16/9; }
+  .demo-video iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .demo-video .cap { padding: 12px 16px; font-size: 12px; color: var(--muted); }
+  .demo-panel { display: flex; flex-direction: column; gap: 16px; }
+  .lang-card { border: 1px solid var(--border); border-radius: 16px; padding: 20px; background: var(--surface); flex: 1; }
+  .lang-card.dub { border-color: rgba(124,106,255,0.4); background: rgba(124,106,255,0.08); }
+  .lang-head { display: flex; align-items: center; justify-content: space-between; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .lang-card.dub .lang-head { color: var(--accent); }
+  .lang-card p { font-size: 14px; color: var(--text); }
+  .demo-actions { margin-top: 28px; }
 
-  .step-num {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    flex-shrink: 0;
-  }
+  /* CTA */
+  .cta-band { text-align: center; background: linear-gradient(135deg, rgba(124,106,255,0.12), rgba(255,106,155,0.08)); border: 1px solid var(--border); border-radius: 24px; padding: 56px 24px; }
 
-  .step.active .step-num { border-color: var(--accent); color: var(--accent); }
-  .step.done .step-num { background: var(--success); border-color: var(--success); color: #0a0a0f; }
-
-  /* Download */
-  .btn-download {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 14px 24px;
-    background: var(--success);
-    color: #0a0a0f;
-    border: none;
-    border-radius: 10px;
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    transition: opacity 0.15s;
-  }
-
-  .btn-download:hover { opacity: 0.85; }
-
-  /* Error */
-  .error-msg {
-    background: rgba(248,113,113,0.08);
-    border: 1px solid rgba(248,113,113,0.3);
-    border-radius: 10px;
-    padding: 14px 16px;
-    font-size: 13px;
-    color: var(--error);
-    margin-top: 16px;
-    display: none;
-  }
-
-  .error-msg.visible { display: block; }
-
-  /* Reset */
-  .btn-reset {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-    cursor: pointer;
-    margin-top: 16px;
-    transition: all 0.15s;
-  }
-
-  .btn-reset:hover { border-color: var(--text); color: var(--text); }
-
-  /* Footer note */
-  .footer-note {
-    margin-top: 32px;
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.7;
-    padding: 16px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface);
-  }
-
-  .footer-note a { color: var(--accent); text-decoration: none; }
+  /* Footer */
+  footer { border-top: 1px solid var(--border); margin-top: 48px; }
+  .foot-inner { display: flex; justify-content: space-between; align-items: center; padding: 28px 24px; max-width: 1000px; margin: 0 auto; font-size: 12px; color: var(--muted); flex-wrap: wrap; gap: 12px; }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <header class="header">
-    <div class="logo">
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="index.html">
       <div class="logo-mark">🎙</div>
       <div class="logo-text">Dub<span>AI</span></div>
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#demo">Demo</a>
+      <a class="nav-cta" href="app.html">Launch app</a>
     </div>
-    <h1>Translate any<br>video into <em>any<br>language</em></h1>
-    <p class="subtitle">Powered by ElevenLabs. Upload a video or paste a URL — we'll dub it in 90+ languages while preserving the original voices.</p>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="badge"><span class="dot"></span> Dubbing that keeps the original voice</div>
+    <h1>Dub any video into<br><em>any language</em></h1>
+    <p>DubAI transcribes, translates and re-voices your video in 90+ languages — cloning each speaker so the dub sounds like <strong>them</strong>, just in another language.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="app.html">🎬 Dub a video</a>
+      <a class="btn btn-ghost" href="#demo">Watch the demo</a>
+    </div>
   </header>
 
-  <!-- Input card -->
-  <div class="card" id="inputCard">
-    <div class="section-label">01 — Input</div>
-
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('url')">URL</button>
-      <button class="tab" onclick="switchTab('file')">Upload File</button>
+  <!-- How it works -->
+  <section class="block" id="how">
+    <div class="eyebrow">How it works</div>
+    <h2>From link to dub in five steps</h2>
+    <p class="section-sub">Paste a YouTube URL (or upload a file) and DubAI handles the rest — powered by ElevenLabs.</p>
+    <div class="steps-grid">
+      <div class="step-card"><div class="step-num">1</div><h3>Ingest</h3><p>Pull audio straight from a YouTube link or your uploaded file.</p></div>
+      <div class="step-card"><div class="step-num">2</div><h3>Transcribe</h3><p>Speech is transcribed with per-speaker timing.</p></div>
+      <div class="step-card"><div class="step-num">3</div><h3>Translate</h3><p>Dialogue is translated into your target language.</p></div>
+      <div class="step-card"><div class="step-num">4</div><h3>Clone voice</h3><p>Each original voice is cloned and speaks the translation.</p></div>
+      <div class="step-card"><div class="step-num">5</div><h3>Deliver</h3><p>Download a finished, timed, dubbed audio track.</p></div>
     </div>
+  </section>
 
-    <div id="urlInput" class="input-group">
-      <label>Video or audio URL</label>
-      <input type="url" id="videoUrl" placeholder="https://example.com/video.mp4" />
+  <!-- Features -->
+  <section class="block" id="features">
+    <div class="eyebrow">Why DubAI</div>
+    <h2>Built to sound like the real thing</h2>
+    <div class="feat-grid">
+      <div class="feat"><div class="ico">🗣️</div><h3>Original voice preserved</h3><p>Voice cloning means the dub sounds like the actual speaker — not a generic narrator.</p></div>
+      <div class="feat"><div class="ico">🌍</div><h3>90+ languages</h3><p>English → Spanish out of the box, plus dozens more source and target languages.</p></div>
+      <div class="feat"><div class="ico">👥</div><h3>Multi-speaker aware</h3><p>Auto-detects every speaker and keeps each one's voice distinct in the dub.</p></div>
+      <div class="feat"><div class="ico">🔌</div><h3>Simple API</h3><p>A single <code>POST /api/dub</code> kicks off a job. Poll status, download the result.</p></div>
     </div>
+  </section>
 
-    <div id="fileInput" style="display:none" class="input-group">
-      <div class="dropzone" id="dropzone">
-        <input type="file" id="fileUpload" accept="video/*,audio/*" onchange="handleFileSelect(this)" />
-        <div class="dropzone-icon">📁</div>
-        <div class="dropzone-text">
-          <strong>Choose a file</strong> or drag it here<br>
-          MP4, MOV, MKV, MP3, WAV — max 1 hour
+  <!-- Demo -->
+  <section class="block" id="demo">
+    <div class="eyebrow">Live demo</div>
+    <h2>English → Spanish, same voice</h2>
+    <p class="section-sub">Our demo dubs <strong>“Me at the zoo”</strong> — the first video ever uploaded to YouTube (~18s of spoken English) — into Spanish in the original speaker's voice. This exact clip is also the fixture in our automated test suite.</p>
+    <div class="demo-grid">
+      <div class="demo-video">
+        <div class="frame">
+          <iframe src="https://www.youtube.com/embed/jNQXAC9IVRw" title="Me at the zoo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
-        <div class="file-name" id="fileName"></div>
+        <div class="cap">Original · English · 0:18</div>
+      </div>
+      <div class="demo-panel">
+        <div class="lang-card">
+          <div class="lang-head"><span>Original · English</span><span>🇬🇧</span></div>
+          <p>"All right, so here we are in front of the elephants. The cool thing about these guys is that they have really, really, really long trunks…"</p>
+        </div>
+        <div class="lang-card dub">
+          <div class="lang-head"><span>Dubbed · Spanish · same voice</span><span>🇪🇸</span></div>
+          <p>"Muy bien, aquí estamos frente a los elefantes. Lo genial de estos animales es que tienen trompas muy, muy, muy largas…"</p>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- Languages card -->
-  <div class="card">
-    <div class="section-label">02 — Languages</div>
-    <div class="lang-grid">
-      <div class="input-group">
-        <label>Source language</label>
-        <select id="sourceLang">
-          <option value="auto">Auto-detect</option>
-          <option value="en">English</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-          <option value="de">German</option>
-          <option value="it">Italian</option>
-          <option value="pt">Portuguese</option>
-          <option value="ja">Japanese</option>
-          <option value="ko">Korean</option>
-          <option value="zh">Chinese</option>
-          <option value="hi">Hindi</option>
-          <option value="ar">Arabic</option>
-          <option value="ru">Russian</option>
-          <option value="nl">Dutch</option>
-          <option value="pl">Polish</option>
-          <option value="tr">Turkish</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <label>Target language</label>
-        <select id="targetLang">
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-          <option value="de">German</option>
-          <option value="it">Italian</option>
-          <option value="pt">Portuguese</option>
-          <option value="ja">Japanese</option>
-          <option value="ko">Korean</option>
-          <option value="zh">Chinese</option>
-          <option value="hi">Hindi</option>
-          <option value="ar">Arabic</option>
-          <option value="ru">Russian</option>
-          <option value="en">English</option>
-          <option value="nl">Dutch</option>
-          <option value="pl">Polish</option>
-          <option value="tr">Turkish</option>
-        </select>
-      </div>
+    <div class="demo-actions">
+      <a class="btn btn-primary" href="app.html?url=https://www.youtube.com/watch?v=jNQXAC9IVRw&source=en&target=es">▶ Dub this video yourself</a>
     </div>
-  </div>
+  </section>
 
-  <!-- Submit -->
-  <button class="btn-dub" id="dubBtn" onclick="startDubbing()">
-    🎬 Start Dubbing
-  </button>
-
-  <!-- Status card -->
-  <div class="status-card" id="statusCard" style="margin-top:20px;">
-    <div class="status-header">
-      <div class="status-dot pulsing" id="statusDot"></div>
-      <div>
-        <div class="status-title" id="statusTitle">Processing your video…</div>
-        <div class="status-id" id="statusId"></div>
-      </div>
+  <!-- CTA -->
+  <section class="block">
+    <div class="cta-band">
+      <h2>Ready to dub your first video?</h2>
+      <p class="section-sub" style="margin: 0 auto 28px;">Paste a link, pick a language, and hear it in the original voice.</p>
+      <a class="btn btn-primary" href="app.html">🎬 Launch DubAI</a>
     </div>
-
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-
-    <div class="steps">
-      <div class="step active" id="step1">
-        <div class="step-num">1</div>
-        <span>Submitting to ElevenLabs</span>
-      </div>
-      <div class="step" id="step2">
-        <div class="step-num">2</div>
-        <span>Transcribing audio</span>
-      </div>
-      <div class="step" id="step3">
-        <div class="step-num">3</div>
-        <span>Translating dialogue</span>
-      </div>
-      <div class="step" id="step4">
-        <div class="step-num">4</div>
-        <span>Synthesizing voices</span>
-      </div>
-      <div class="step" id="step5">
-        <div class="step-num">5</div>
-        <span>Finalizing output</span>
-      </div>
-    </div>
-
-    <div id="downloadSection" style="display:none;">
-      <a id="downloadBtn" class="btn-download" href="#">
-        ⬇ Download Dubbed Audio
-      </a>
-    </div>
-
-    <div class="error-msg" id="errorMsg"></div>
-
-    <button class="btn-reset" onclick="reset()">← Start over</button>
-  </div>
-
-  <div class="footer-note">
-    <strong>Setup:</strong> This frontend talks to a local backend at <code>localhost:3001</code>.<br>
-    Start the backend: <code>cd backend && npm install && npm run dev</code><br>
-    Add your key to <code>backend/.env</code>: <code>ELEVENLABS_API_KEY=your_key_here</code><br>
-    Get your API key at <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank">elevenlabs.io → Developers → API Keys</a>
-  </div>
+  </section>
 
 </div>
 
-<script>
-const BACKEND = 'http://localhost:3001';
-let pollInterval = null;
-let dubbingId = null;
-let targetLangValue = null;
-let selectedFile = null;
+<footer>
+  <div class="foot-inner">
+    <span>🎙 DubAI — dubbing in the original voice.</span>
+    <span>Powered by ElevenLabs · Express · Node</span>
+  </div>
+</footer>
 
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (i === 0) === (tab === 'url')));
-  document.getElementById('urlInput').style.display = tab === 'url' ? 'block' : 'none';
-  document.getElementById('fileInput').style.display = tab === 'file' ? 'block' : 'none';
-}
-
-function handleFileSelect(input) {
-  selectedFile = input.files[0];
-  const dz = document.getElementById('dropzone');
-  dz.classList.add('file-selected');
-  document.getElementById('fileName').textContent = `✓ ${selectedFile.name}`;
-}
-
-// Drag and drop
-const dropzone = document.getElementById('dropzone');
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropzone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file) {
-    selectedFile = file;
-    dropzone.classList.add('file-selected');
-    document.getElementById('fileName').textContent = `✓ ${file.name}`;
-    document.getElementById('fileUpload').files = e.dataTransfer.files;
-  }
-});
-
-function setStep(n) {
-  for (let i = 1; i <= 5; i++) {
-    const el = document.getElementById(`step${i}`);
-    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
-    if (i < n) el.querySelector('.step-num').textContent = '✓';
-    else el.querySelector('.step-num').textContent = i;
-  }
-  document.getElementById('progressFill').style.width = `${Math.min((n - 1) * 25, 100)}%`;
-}
-
-async function startDubbing() {
-  const videoUrl = document.getElementById('videoUrl').value.trim();
-  const sourceLang = document.getElementById('sourceLang').value;
-  targetLangValue = document.getElementById('targetLang').value;
-
-  const isUrl = document.getElementById('urlInput').style.display !== 'none';
-  if (isUrl && !videoUrl) return alert('Please enter a video URL.');
-  if (!isUrl && !selectedFile) return alert('Please select a file to upload.');
-
-  document.getElementById('dubBtn').disabled = true;
-  document.getElementById('statusCard').classList.add('visible');
-  document.getElementById('errorMsg').classList.remove('visible');
-  document.getElementById('downloadSection').style.display = 'none';
-  setStep(1);
-
-  try {
-    let body, headers = {};
-
-    if (isUrl) {
-      body = JSON.stringify({ videoUrl, sourceLang, targetLang: targetLangValue });
-      headers['Content-Type'] = 'application/json';
-    } else {
-      body = new FormData();
-      body.append('file', selectedFile);
-      body.append('sourceLang', sourceLang);
-      body.append('targetLang', targetLangValue);
-    }
-
-    const res = await fetch(`${BACKEND}/api/dub`, { method: 'POST', headers, body });
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error || 'Failed to start dubbing');
-
-    dubbingId = data.dubbingId;
-    document.getElementById('statusId').textContent = `Job ID: ${dubbingId}`;
-    setStep(2);
-    pollStatus();
-
-  } catch (err) {
-    showError(err.message);
-  }
-}
-
-function pollStatus() {
-  let stepCycle = 2;
-  const stepMessages = ['', '', 'Transcribing audio…', 'Translating dialogue…', 'Synthesizing voices…', 'Finalizing output…'];
-
-  pollInterval = setInterval(async () => {
-    try {
-      const res = await fetch(`${BACKEND}/api/dub/${dubbingId}/status`);
-      const data = await res.json();
-
-      if (data.status === 'dubbed') {
-        clearInterval(pollInterval);
-        setStep(5);
-        document.getElementById('progressFill').style.width = '100%';
-        await new Promise(r => setTimeout(r, 500));
-
-        document.getElementById('statusDot').className = 'status-dot done';
-        document.getElementById('statusTitle').textContent = '✓ Dubbing complete!';
-
-        const url = `${BACKEND}/api/dub/${dubbingId}/audio/${targetLangValue}`;
-        const dlBtn = document.getElementById('downloadBtn');
-        dlBtn.href = url;
-        dlBtn.download = `dubbed_${targetLangValue}.mp3`;
-        document.getElementById('downloadSection').style.display = 'block';
-
-      } else if (data.status === 'error' || data.error) {
-        clearInterval(pollInterval);
-        throw new Error(data.error || 'Dubbing failed');
-      } else {
-        // Advance step indicator every few polls
-        if (stepCycle < 5) {
-          stepCycle = Math.min(stepCycle + 0.15, 5);
-          setStep(Math.floor(stepCycle));
-        }
-      }
-    } catch (err) {
-      clearInterval(pollInterval);
-      showError(err.message);
-    }
-  }, 4000);
-}
-
-function showError(msg) {
-  document.getElementById('statusDot').className = 'status-dot error';
-  document.getElementById('statusTitle').textContent = 'Something went wrong';
-  document.getElementById('errorMsg').textContent = msg;
-  document.getElementById('errorMsg').classList.add('visible');
-  document.getElementById('dubBtn').disabled = false;
-}
-
-function reset() {
-  clearInterval(pollInterval);
-  dubbingId = null;
-  selectedFile = null;
-  document.getElementById('dubBtn').disabled = false;
-  document.getElementById('statusCard').classList.remove('visible');
-  document.getElementById('videoUrl').value = '';
-  document.getElementById('fileName').textContent = '';
-  document.getElementById('dropzone').classList.remove('file-selected');
-  document.getElementById('statusDot').className = 'status-dot pulsing';
-  document.getElementById('statusTitle').textContent = 'Processing your video…';
-  document.getElementById('statusId').textContent = '';
-}
-</script>
 </body>
 </html>
